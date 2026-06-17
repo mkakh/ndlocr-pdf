@@ -30,7 +30,7 @@ jobs:
       - name: Set up Python 3.12
         run: uv python install 3.12
 
-      - name: Sync dependencies (incl. dev: pyinstaller, flet-cli)
+      - name: "Sync dependencies (incl. dev tools: pyinstaller, flet-cli)"
         run: uv sync --dev
 
       - name: Inject version from tag
