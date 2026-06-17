@@ -1,0 +1,92 @@
+# NDLOCR-PDF
+
+非技術者向けの Windows 用 PDF OCR デスクトップアプリです。インストール作業なしで、
+PDF をドラッグ＆ドロップ（または「開く」）して OCR し、テキストと検索可能 PDF を
+出力します。OCR エンジンには国立国会図書館の
+[NDLOCR-Lite](https://github.com/ndl-lab/ndlocr-lite) を利用しています。
+
+> **日本語（全角）を含むパスに置いても動作します。** `C:\Users\田中\デスクトップ\…`
+> のようなフォルダに解凍して実行しても OCR が完了するよう設計されています
+> （非 ASCII パス耐性については後述）。
+
+## 使い方（エンドユーザー）
+
+1. Releases から zip をダウンロードして解凍する
+2. 中の `ndlocr-pdf.exe` をダブルクリックする
+3. 「PDF を選ぶ」で PDF を選択し、対象ページ（空欄＝全ページ）を指定する
+4. 「OCR 実行」を押す。完了後「出力フォルダを開く」で結果を確認できる
+
+出力は既定で入力 PDF と同じフォルダ内の `<元のファイル名>_ocr/` に、
+`<元のファイル名>.txt` / `.xml` / `.json` と検索可能 PDF `<元のファイル名>_text.pdf`
+として保存されます。
+
+## コマンドライン（自動化・CI 向け）
+
+同じ exe をヘッドレスで実行できます。
+
+```
+ndlocr-pdf.exe --cli <INPUT.pdf> [--pages 1,3,5-8] [--output DIR] [--dpi 150]
+                                 [--enable-tcy] [--no-searchable-pdf]
+                                 [--no-clobber] [--quiet]
+```
+
+終了コード: `0`=成功 / `2`=引数・ページ指定エラー / `3`=PDF を開けない / `1`=その他。
+
+## 開発
+
+開発・ビルド・検証はすべて **Windows + PowerShell** で行います。
+
+- Python: **3.12**（`uv python pin` で固定）
+- 依存マネージャ: **uv**
+- 上流エンジン: git submodule `external/ndlocr-lite`、**`UPSTREAM_REF = 1.2.3`** に固定
+  （`--sourcepdf` を含む最新リリース。改変しない）
+
+```powershell
+# 初回のみ
+irm https://astral.sh/uv/install.ps1 | iex
+git submodule update --init --recursive   # 既存クローンの場合
+uv sync                                    # 依存を同期
+
+# テスト
+uv run pytest tests/test_pagespec.py -q
+
+# サンプル PDF で CLI 動作確認
+uv run python src/app.py --cli tests/fixtures/sample.pdf --pages 1 --output out
+```
+
+### パッケージング（手動ビルド）
+
+```powershell
+uv run python tools/gen_notice.py
+uv run flet pack src/app.py -D -n ndlocr-pdf -y `
+  --add-data "external/ndlocr-lite/src;ndlocr_src" `
+  --pyinstaller-build-args "--collect-all=onnxruntime" `
+  --pyinstaller-build-args "--collect-all=pypdfium2" `
+  --pyinstaller-build-args "--collect-all=reportlab" `
+  --pyinstaller-build-args "--collect-all=cv2"
+```
+
+成果物は `dist/ndlocr-pdf/` に出力されます。`flet build`（Flutter SDK + Visual
+Studio が必要）は本用途には過剰なため使いません。
+
+## リリース
+
+`vMAJOR.MINOR.PATCH` の git タグを push すると、GitHub Actions（`windows-latest`）
+がビルド → スモークテスト → zip を Releases に添付します（`.github/workflows/build.yml`）。
+
+## 非 ASCII パス耐性
+
+上流エンジンは非 ASCII パスで起動に失敗することがあるため、本アプリでは:
+
+- エンジンに渡す入力 PDF・モデル・出力は常に ASCII の作業フォルダ
+  （`%PUBLIC%\ndlocr-pdf\…`）経由にする
+- exe 自体が非 ASCII フォルダに置かれた場合は、固定 ASCII ベースへ payload を複製して
+  再起動する
+
+ことで、日本語フォルダでも動作します。
+
+## ライセンス
+
+OCR エンジンとモデルは NDLOCR-Lite（**CC BY 4.0**, 国立国会図書館）に由来します。
+配布物には帰属表示・変更点・依存ライセンス全文をまとめた `NOTICE` を同梱します
+（`tools/gen_notice.py` が `uv` 解決結果から生成）。本ラッパー部分のライセンスは別途。

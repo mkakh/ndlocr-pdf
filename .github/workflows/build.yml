@@ -1,0 +1,76 @@
+name: build
+
+# Tag-driven release build (§7.1). Tagging v1.2.3 -> Windows build -> packaged
+# exe -> build-after smoke test (§7.2) -> zip attached to a GitHub Release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write  # required to create the Release and upload assets
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # pull upstream engine + ONNX models
+
+      - name: Verify submodule has PDF support
+        shell: pwsh
+        run: |
+          if (-not (Select-String -Path external/ndlocr-lite/src/ocr.py -Pattern '--sourcepdf' -Quiet)) {
+            Write-Error 'submodule does not contain PDF support'; exit 1
+          }
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Sync dependencies (incl. dev: pyinstaller, flet-cli)
+        run: uv sync --dev
+
+      - name: Inject version from tag
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}" -replace '^v', ''
+          Write-Host "version = $v"
+          "# Overwritten by CI from the git tag (see SPEC.md §7.1).`n__version__ = `"$v`"`n" |
+            Out-File -Encoding utf8 src/_version.py
+          # keep pyproject in sync
+          (Get-Content pyproject.toml) -replace '^version = ".*"', "version = `"$v`"" |
+            Set-Content -Encoding utf8 pyproject.toml
+
+      - name: Generate NOTICE from resolved environment
+        run: uv run python tools/gen_notice.py
+
+      - name: Package with flet pack (onedir)
+        run: >
+          uv run flet pack src/app.py -D -n ndlocr-pdf -y
+          --add-data "external/ndlocr-lite/src;ndlocr_src"
+          --product-name "NDLOCR-PDF"
+          --product-version "${{ github.ref_name }}"
+          --pyinstaller-build-args "--collect-all=onnxruntime"
+          --pyinstaller-build-args "--collect-all=pypdfium2"
+          --pyinstaller-build-args "--collect-all=reportlab"
+          --pyinstaller-build-args "--collect-all=cv2"
+
+      - name: Bundle NOTICE into the distribution
+        shell: pwsh
+        run: Copy-Item NOTICE dist/ndlocr-pdf/NOTICE
+
+      - name: Build-after smoke test (§7.2)
+        shell: pwsh
+        run: pwsh tools/smoke_test.ps1 -Exe dist/ndlocr-pdf/ndlocr-pdf.exe
+
+      - name: Zip distribution
+        shell: pwsh
+        run: Compress-Archive -Path dist/ndlocr-pdf/* -DestinationPath "ndlocr-pdf-${{ github.ref_name }}-windows.zip"
+
+      - name: Create Release and upload zip
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ndlocr-pdf-${{ github.ref_name }}-windows.zip

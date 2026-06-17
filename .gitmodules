@@ -1,0 +1,3 @@
+[submodule "external/ndlocr-lite"]
+	path = external/ndlocr-lite
+	url = https://github.com/ndl-lab/ndlocr-lite

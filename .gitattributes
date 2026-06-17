@@ -1,0 +1,9 @@
+# Normalize line endings for text; keep binaries untouched.
+* text=auto
+
+*.pdf binary
+*.onnx binary
+*.png binary
+*.ico binary
+
+*.ps1 text eol=crlf

@@ -1,0 +1,17 @@
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+
+# PyInstaller / flet pack
+build/
+dist/
+*.spec
+
+# local smoke-test / scratch artifacts
+_smoke*/
+_jp_test/
+
+# editor / tool local config
+.claude/
+.pytest_cache/

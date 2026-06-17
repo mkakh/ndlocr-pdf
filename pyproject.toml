@@ -1,0 +1,31 @@
+[project]
+name = "ndlocr-pdf"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "dill==0.3.8",
+    "flet==0.27.6",
+    "lxml==5.4.0",
+    "networkx==3.3",
+    "numpy==2.2.2",
+    "onnxruntime==1.23.2 ; python_full_version == '3.10.*' or sys_platform == 'darwin'",
+    "onnxruntime==1.26.0 ; python_full_version >= '3.11' and sys_platform != 'darwin'",
+    "opencv-python-headless==4.11.0.86",
+    "ordered-set==4.1.0",
+    "pillow==12.1.1",
+    "protobuf==6.31.1",
+    "pyparsing==3.1.2",
+    "pypdf==6.4.0",
+    "pypdfium2==4.30.0",
+    "pyyaml==6.0.1",
+    "reportlab==4.2.5",
+    "tqdm==4.66.4",
+]
+
+[dependency-groups]
+dev = [
+    "flet-cli==0.27.6",
+    "flet-desktop==0.27.6",
+    "pyinstaller>=6.21.0",
+    "pytest>=9.1.0",
+]
