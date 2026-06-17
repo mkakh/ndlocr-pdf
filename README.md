@@ -60,10 +60,10 @@ uv run python src/app.py --cli tests/fixtures/sample.pdf --pages 1 --output out
 uv run python tools/gen_notice.py
 uv run flet pack src/app.py -D -n ndlocr-pdf -y `
   --add-data "external/ndlocr-lite/src;ndlocr_src" `
-  --pyinstaller-build-args "--collect-all=onnxruntime" `
-  --pyinstaller-build-args "--collect-all=pypdfium2" `
-  --pyinstaller-build-args "--collect-all=reportlab" `
-  --pyinstaller-build-args "--collect-all=cv2"
+  "--pyinstaller-build-args=--collect-all=onnxruntime" `
+  "--pyinstaller-build-args=--collect-all=pypdfium2" `
+  "--pyinstaller-build-args=--collect-all=reportlab" `
+  "--pyinstaller-build-args=--collect-all=cv2"
 ```
 
 成果物は `dist/ndlocr-pdf/` に出力されます。`flet build`（Flutter SDK + Visual
