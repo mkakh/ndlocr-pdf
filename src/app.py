@@ -77,10 +77,28 @@ def main_gui(page) -> None:
     last_out_dir: dict[str, str | None] = {"path": None}
 
     selected_label = ft.Text("PDF が選択されていません", size=14)
-    pages_field = ft.TextField(label="対象ページ（空欄＝全ページ）", hint_text="例: 1,3,5-8", width=320)
-    dpi_field = ft.TextField(label="DPI", value="150", width=120)
-    searchable_cb = ft.Checkbox(label="検索可能 PDF を作る", value=True)
-    tcy_cb = ft.Checkbox(label="縦中横（縦書き資料向け）", value=False)
+    pages_field = ft.TextField(
+        label="OCR するページ（空欄＝全ページ）",
+        hint_text="例: 1,3,5-8",
+        width=320,
+    )
+    dpi_field = ft.TextField(
+        label="読み取り解像度（DPI）",
+        value="150",
+        width=280,
+        helper_text="数字が大きいほど精細だが遅くなります（既定 150）",
+    )
+    searchable_cb = ft.Checkbox(
+        label="文字を検索・コピーできる PDF も作る（おすすめ）",
+        value=True,
+        tooltip="OFF にすると PDF は作らず、テキスト(.txt)などの結果だけ出力します。",
+    )
+    tcy_cb = ft.Checkbox(
+        label="縦書きの資料（新聞・古典籍など）",
+        value=False,
+        tooltip="縦書き中心の資料で認識精度が上がることがあります（縦中横対応）。"
+        "横書きの文書では OFF のままで構いません。",
+    )
     progress_bar = ft.ProgressBar(width=560, value=0)
     progress_bar.visible = False
     status_text = ft.Text("", size=14)
@@ -115,7 +133,7 @@ def main_gui(page) -> None:
         try:
             dpi = float(dpi_field.value or "150")
         except ValueError:
-            _set_error("DPI は数値で入力してください。")
+            _set_error("読み取り解像度（DPI）は数値で入力してください。")
             _finish()
             return
 
@@ -189,8 +207,9 @@ def main_gui(page) -> None:
     open_folder_btn.on_click = open_folder
 
     advanced = ft.ExpansionTile(
-        title=ft.Text("詳細設定"),
-        controls=[ft.Container(content=dpi_field, padding=ft.padding.only(left=16, bottom=8))],
+        title=ft.Text("詳細設定（上級者向け）"),
+        controls_padding=ft.padding.only(left=16, right=16, top=4, bottom=16),
+        controls=[dpi_field],
     )
 
     page.add(
