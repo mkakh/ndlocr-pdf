@@ -167,6 +167,20 @@ def _materialize(src: Path, final_dest: Path) -> Path:
     try:
         if sentinel.is_file():
             return final_dest
+        if not got:
+            # We could not serialize against another process. Do NOT touch the
+            # cache directories (that would race the lock holder and could
+            # corrupt the shared copy). Wait for the holder to publish the
+            # sentinel and reuse its result; give up with a clear error if it
+            # never appears.
+            deadline = time.monotonic() + 120.0
+            while time.monotonic() < deadline:
+                if sentinel.is_file():
+                    return final_dest
+                time.sleep(0.5)
+            raise RuntimeError(
+                f"キャッシュの準備がタイムアウトしました: {final_dest}"
+            )
         if final_dest.exists():
             shutil.rmtree(final_dest, ignore_errors=True)
         tmp = final_dest.parent / (final_dest.name + ".tmp")

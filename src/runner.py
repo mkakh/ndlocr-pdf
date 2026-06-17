@@ -116,10 +116,20 @@ def _prepare_out_dir(input_pdf: Path, out_dir, no_clobber: bool) -> tuple[Path, 
 
     exists_nonempty = out_dir.exists() and any(out_dir.iterdir())
     if exists_nonempty and no_clobber:
+        # Never overwrite under --no-clobber: claim a fresh directory atomically
+        # (exist_ok=False), disambiguating with a counter so two runs in the
+        # same second can't land in the same timestamped folder.
         ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-        out_dir = out_dir.parent / f"{out_dir.name}_{ts}"
-        out_dir.mkdir(parents=True, exist_ok=True)
-        return out_dir, False
+        base = out_dir.parent / f"{out_dir.name}_{ts}"
+        candidate = base
+        n = 1
+        while True:
+            try:
+                candidate.mkdir(parents=True, exist_ok=False)
+                return candidate, False
+            except FileExistsError:
+                candidate = base.parent / f"{base.name}_{n}"
+                n += 1
 
     out_dir.mkdir(parents=True, exist_ok=True)
     return out_dir, exists_nonempty
