@@ -58,9 +58,11 @@ jobs:
           --pyinstaller-build-args "--collect-all=reportlab"
           --pyinstaller-build-args "--collect-all=cv2"
 
-      - name: Bundle NOTICE into the distribution
+      - name: Bundle NOTICE and LICENSE into the distribution
         shell: pwsh
-        run: Copy-Item NOTICE dist/ndlocr-pdf/NOTICE
+        run: |
+          Copy-Item NOTICE dist/ndlocr-pdf/NOTICE
+          Copy-Item LICENSE dist/ndlocr-pdf/LICENSE
 
       - name: Build-after smoke test (§7.2)
         shell: pwsh

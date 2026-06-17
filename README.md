@@ -87,6 +87,10 @@ Studio が必要）は本用途には過剰なため使いません。
 
 ## ライセンス
 
-OCR エンジンとモデルは NDLOCR-Lite（**CC BY 4.0**, 国立国会図書館）に由来します。
+- **本ラッパー部分**（`src/` / `tests/` / `tools/`）: **MIT License**（`LICENSE`）。
+- **OCR エンジン・ONNX モデル**: NDLOCR-Lite に由来し **CC BY 4.0**（国立国会図書館）。
+- **依存ライブラリ**: それぞれの寛容ライセンス（Apache / MIT / BSD ほか）。
+
 配布物には帰属表示・変更点・依存ライセンス全文をまとめた `NOTICE` を同梱します
-（`tools/gen_notice.py` が `uv` 解決結果から生成）。本ラッパー部分のライセンスは別途。
+（`tools/gen_notice.py` が `uv` 解決結果から機械生成）。MIT は share-alike では
+ないため自前部分は自由に再利用できますが、上流由来部分の CC BY 帰属表示は維持されます。
