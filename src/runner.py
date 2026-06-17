@@ -114,11 +114,17 @@ def _prepare_out_dir(input_pdf: Path, out_dir, no_clobber: bool) -> tuple[Path, 
     else:
         out_dir = input_pdf.parent / f"{input_pdf.stem}_ocr"
 
-    exists_nonempty = out_dir.exists() and any(out_dir.iterdir())
-    if exists_nonempty and no_clobber:
-        # Never overwrite under --no-clobber: claim a fresh directory atomically
-        # (exist_ok=False), disambiguating with a counter so two runs in the
-        # same second can't land in the same timestamped folder.
+    if no_clobber:
+        # Never overwrite. Try to claim the base dir itself atomically; this
+        # both honors SPEC "出力先が既存なら上書きせず" (an existing dir — even
+        # empty — is not reused) and closes the concurrent-start race (only one
+        # process can create it). On any clash fall back to a timestamped/
+        # counter sibling, also claimed atomically.
+        try:
+            out_dir.mkdir(parents=True, exist_ok=False)
+            return out_dir, False
+        except FileExistsError:
+            pass
         ts = datetime.now().strftime("%Y%m%d-%H%M%S")
         base = out_dir.parent / f"{out_dir.name}_{ts}"
         candidate = base
@@ -131,6 +137,7 @@ def _prepare_out_dir(input_pdf: Path, out_dir, no_clobber: bool) -> tuple[Path, 
                 candidate = base.parent / f"{base.name}_{n}"
                 n += 1
 
+    exists_nonempty = out_dir.exists() and any(out_dir.iterdir())
     out_dir.mkdir(parents=True, exist_ok=True)
     return out_dir, exists_nonempty
 
