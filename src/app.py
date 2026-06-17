@@ -81,7 +81,7 @@ def main_gui(page) -> None:
 
     selected_label = ft.Text("PDF が選択されていません", size=14)
     pages_field = ft.TextField(
-        label="OCR するページ（空欄＝全ページ）",
+        label="OCR 対象ページ（空欄＝全ページ）",
         hint_text="例: 1,3,5-8",
         width=320,
     )
@@ -223,7 +223,7 @@ def main_gui(page) -> None:
     )
 
     page.add(
-        ft.Text("PDF を OCR する", size=22, weight=ft.FontWeight.BOLD),
+        ft.Text("PDF を文字データに変換", size=22, weight=ft.FontWeight.BOLD),
         ft.Row([pick_btn]),
         selected_label,
         ft.Divider(),
