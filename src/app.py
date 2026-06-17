@@ -68,8 +68,11 @@ def main_gui(page) -> None:
     from pdfslice import PdfOpenError
 
     page.title = f"NDLOCR-PDF  v{__version__}"
-    page.window_width = 640
-    page.window_height = 640
+    # Fixed window size (non-resizable): the layout is a simple vertical form.
+    page.window.width = 660
+    page.window.height = 680
+    page.window.resizable = False
+    page.window.maximizable = False
     page.padding = 24
     page.scroll = ft.ScrollMode.AUTO
 
@@ -86,7 +89,14 @@ def main_gui(page) -> None:
         label="読み取り解像度（DPI）",
         value="150",
         width=280,
-        helper_text="数字が大きいほど精細だが遅くなります（既定 150）",
+    )
+    # Separate wrapping caption (helper_text would be clipped to the field width).
+    dpi_caption = ft.Text(
+        "数字が大きいほど精細ですが、処理が遅く・出力も大きくなります。"
+        "通常の文書は 150 で十分です。文字が小さい・つぶれ気味の資料は 200〜300 を試してください。",
+        size=12,
+        color=ft.Colors.GREY,
+        width=560,
     )
     searchable_cb = ft.Checkbox(
         label="文字を検索・コピーできる PDF も作る（おすすめ）",
@@ -209,7 +219,7 @@ def main_gui(page) -> None:
     advanced = ft.ExpansionTile(
         title=ft.Text("詳細設定（上級者向け）"),
         controls_padding=ft.padding.only(left=16, right=16, top=4, bottom=16),
-        controls=[dpi_field],
+        controls=[ft.Column([dpi_field, dpi_caption], spacing=8)],
     )
 
     page.add(
