@@ -40,7 +40,7 @@ ndlocr-pdf.exe --cli <INPUT.pdf> [--pages 1,3,5-8] [--output DIR] [--dpi 150]
 
 - `--excerpt-only`: ページ指定時に全ページ保持をやめ、選択ページだけの抜粋 PDF を出す
   （既定は全ページ保持）。
-- `--no-ocr-figures`: 図の中の文字の OCR を無効化する（既定は有効）。
+- `--no-ocr-figures`: 図の中の文字の OCR を無効化する（指定しなければ図中も OCR する）。
 
 終了コード: `0`=成功 / `2`=引数・ページ指定エラー / `3`=PDF を開けない / `1`=その他。
 

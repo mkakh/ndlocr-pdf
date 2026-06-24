@@ -37,7 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--no-ocr-figures",
         action="store_true",
-        help="図の中の文字の OCR を無効化する（既定は有効）",
+        help="図の中の文字の OCR を無効化する（指定しなければ図中も OCR する）",
     )
     p.add_argument("--no-clobber", action="store_true", help="既存の出力先を上書きせず退避する")
     p.add_argument("--quiet", action="store_true", help="進捗表示を抑制する")
