@@ -22,15 +22,25 @@
 `<元のファイル名>.txt` / `.xml` / `.json` と検索可能 PDF `<元のファイル名>_text.pdf`
 として保存されます。
 
+- **ページを指定しても文書全体が残ります**（既定）。指定したページだけ文字を読み取り、
+  PDF は全ページそのまま・読み取ったページにだけテキスト層が付きます。チェックを外すと
+  選択ページだけの抜粋 PDF になります。
+- **図・写真の中の文字も読み取ります**（既定）。図領域を切り出して個別に OCR します。
+  図が多い文書では処理時間が少し延びるため、チェックで無効化できます。
+
 ## コマンドライン（自動化・CI 向け）
 
 同じ exe をヘッドレスで実行できます。
 
 ```
 ndlocr-pdf.exe --cli <INPUT.pdf> [--pages 1,3,5-8] [--output DIR] [--dpi 150]
-                                 [--enable-tcy] [--no-searchable-pdf]
-                                 [--no-clobber] [--quiet]
+                                 [--enable-tcy] [--no-searchable-pdf] [--excerpt-only]
+                                 [--no-ocr-figures] [--no-clobber] [--quiet]
 ```
+
+- `--excerpt-only`: ページ指定時に全ページ保持をやめ、選択ページだけの抜粋 PDF を出す
+  （既定は全ページ保持）。
+- `--no-ocr-figures`: 図の中の文字の OCR を無効化する（既定は有効）。
 
 終了コード: `0`=成功 / `2`=引数・ページ指定エラー / `3`=PDF を開けない / `1`=その他。
 
@@ -49,11 +59,21 @@ irm https://astral.sh/uv/install.ps1 | iex
 git submodule update --init --recursive   # 既存クローンの場合
 uv sync                                    # 依存を同期
 
-# テスト
-uv run pytest tests/test_pagespec.py -q
+# 高速な単体テスト（モデル不要）
+uv run pytest tests/test_pagespec.py tests/test_figocr.py tests/test_pdfmerge.py -q
+
+# エンジン込みの結合テスト（submodule のモデルが必要・低速）
+uv run pytest tests/test_integration_ocr.py -q
 
 # サンプル PDF で CLI 動作確認
 uv run python src/app.py --cli tests/fixtures/sample.pdf --pages 1 --output out
+
+# 図 OCR の確認（図中テキストが出力に現れる）
+uv run python src/app.py --cli tests/fixtures/sample_with_figure.pdf --output out
+
+# テスト用フィクスチャの再生成（任意）
+uv run python tests/fixtures/make_sample_pdf.py
+uv run python tests/fixtures/make_sample_with_figure_pdf.py
 ```
 
 ### パッケージング（手動ビルド）

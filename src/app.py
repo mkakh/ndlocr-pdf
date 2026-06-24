@@ -103,12 +103,32 @@ def main_gui(page) -> None:
         value=True,
         tooltip="OFF にすると PDF は作らず、テキスト(.txt)などの結果だけ出力します。",
     )
+    keep_all_cb = ft.Checkbox(
+        label="ページを指定しても、文書全体を残す（おすすめ）",
+        value=True,
+        disabled=True,  # only meaningful once pages are specified
+        tooltip="ON: 指定したページだけ文字を読み取り、PDF は全ページそのまま残します。\n"
+        "OFF: 指定したページだけを抜き出した PDF にします。",
+    )
+    figures_cb = ft.Checkbox(
+        label="図・写真の中の文字も読み取る（おすすめ）",
+        value=True,
+        tooltip="図や写真の中に書かれた文字も読み取ります。"
+        "図が多い文書では処理時間が少し長くなります。",
+    )
     tcy_cb = ft.Checkbox(
         label="縦書きの資料（新聞・古典籍など）",
         value=False,
         tooltip="縦書き中心の資料で認識精度が上がることがあります（縦中横対応）。"
         "横書きの文書では OFF のままで構いません。",
     )
+
+    def on_pages_change(_):
+        # The "keep whole document" option only applies when pages are selected.
+        keep_all_cb.disabled = not (pages_field.value or "").strip()
+        page.update()
+
+    pages_field.on_change = on_pages_change
     progress_bar = ft.ProgressBar(width=560, value=0)
     progress_bar.visible = False
     status_text = ft.Text("", size=14)
@@ -154,6 +174,8 @@ def main_gui(page) -> None:
                 dpi=dpi,
                 enable_tcy=tcy_cb.value,
                 make_searchable=searchable_cb.value,
+                keep_all_pages=keep_all_cb.value,
+                ocr_figures=figures_cb.value,
                 progress=on_progress,
             )
         except PageSpecError as exc:
@@ -173,6 +195,8 @@ def main_gui(page) -> None:
         msg = f"完了しました（{result.page_count} ページ）。\n出力先: {result.out_dir}"
         if result.overwrote:
             msg += "\n（既存の結果を上書きしました）"
+        if result.full_page_failed:
+            msg += "\n（全ページ保持の合成に失敗したため、選択ページのみ出力しました）"
         status_text.value = msg
         status_text.color = ft.Colors.GREEN
         progress_bar.value = 1
@@ -228,7 +252,9 @@ def main_gui(page) -> None:
         selected_label,
         ft.Divider(),
         pages_field,
+        keep_all_cb,
         searchable_cb,
+        figures_cb,
         tcy_cb,
         advanced,
         ft.Row([run_btn]),

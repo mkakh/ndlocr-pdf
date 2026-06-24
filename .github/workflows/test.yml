@@ -1,6 +1,9 @@
 name: test
 
-# Lightweight CI for everyday pushes / PRs: lint + fast unit tests only.
+# Everyday pushes / PRs. Two jobs:
+#   * unit   — fast tests, no upstream engine/models (no submodule checkout).
+#   * engine — engine-backed [auto] acceptance tests (#2/#3b/#3c/#11/#12); needs
+#              the submodule (upstream code + ONNX models). Slower (~1-2 min).
 # Heavy packaging happens only on tags (see build.yml).
 on:
   push:
@@ -13,7 +16,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        # No submodule needed: pagespec tests have no upstream dependency.
+        # No submodule needed: these tests have no upstream dependency.
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -24,5 +27,31 @@ jobs:
       - name: Sync dependencies
         run: uv sync --dev
 
-      - name: Run pagespec unit tests
-        run: uv run pytest tests/test_pagespec.py -q
+      - name: Run fast unit tests
+        run: uv run pytest tests/test_pagespec.py tests/test_figocr.py tests/test_pdfmerge.py -q
+
+  engine:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # upstream engine + ONNX models
+
+      - name: Verify submodule has PDF support
+        shell: pwsh
+        run: |
+          if (-not (Select-String -Path external/ndlocr-lite/src/ocr.py -Pattern '--sourcepdf' -Quiet)) {
+            Write-Error 'submodule does not contain PDF support'; exit 1
+          }
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --dev
+
+      - name: Run engine-backed integration tests (§9 #2/#3b/#3c/#11/#12)
+        run: uv run pytest tests/test_integration_ocr.py -q

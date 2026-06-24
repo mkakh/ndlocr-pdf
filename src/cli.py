@@ -2,7 +2,8 @@
 
 Contract:
     <exe> --cli <INPUT.pdf> [--pages 1,3,5-8] [--output DIR] [--dpi 150]
-                            [--enable-tcy] [--no-searchable-pdf] [--no-clobber] [--quiet]
+                            [--enable-tcy] [--no-searchable-pdf] [--excerpt-only]
+                            [--no-ocr-figures] [--no-clobber] [--quiet]
 
 Exit codes: 0 success, 2 usage/page-spec error, 3 cannot open PDF, 1 other.
 """
@@ -28,6 +29,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dpi", type=float, default=150.0, help="レンダリング DPI（既定 150）")
     p.add_argument("--enable-tcy", action="store_true", help="縦中横を有効化（縦書き資料向け）")
     p.add_argument("--no-searchable-pdf", action="store_true", help="検索可能 PDF を残さない")
+    p.add_argument(
+        "--excerpt-only",
+        action="store_true",
+        help="ページ指定時、全ページを残さず選択ページだけの抜粋 PDF を出す（既定は全ページ保持）",
+    )
+    p.add_argument(
+        "--no-ocr-figures",
+        action="store_true",
+        help="図の中の文字の OCR を無効化する（既定は有効）",
+    )
     p.add_argument("--no-clobber", action="store_true", help="既存の出力先を上書きせず退避する")
     p.add_argument("--quiet", action="store_true", help="進捗表示を抑制する")
     return p
@@ -45,6 +56,8 @@ def main(argv: list[str]) -> int:
             dpi=args.dpi,
             enable_tcy=args.enable_tcy,
             make_searchable=not args.no_searchable_pdf,
+            keep_all_pages=not args.excerpt_only,
+            ocr_figures=not args.no_ocr_figures,
             out_dir=args.output,
             no_clobber=args.no_clobber,
             progress=progress,
@@ -58,6 +71,13 @@ def main(argv: list[str]) -> int:
     except Exception as exc:  # noqa: BLE001 - top-level guard, JP message only
         print(f"エラー: {exc}", file=sys.stderr)
         return 1
+
+    if result.full_page_failed:
+        # §4.2a: never silently downgrade to excerpt.
+        print(
+            "警告: 全ページ保持の合成に失敗したため、選択ページのみの PDF を出力しました。",
+            file=sys.stderr,
+        )
 
     if not args.quiet:
         print(f"完了: {result.out_dir}（{result.page_count} ページ）")
