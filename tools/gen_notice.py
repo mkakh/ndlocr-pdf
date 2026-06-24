@@ -2,7 +2,8 @@
 
 Composition:
   1. NDL NDLOCR-Lite attribution (CC BY 4.0) + original link.
-  2. Our changes (the page-selection GUI/CLI wrapper).
+  2. Our changes (the GUI/CLI wrapper: page selection, full-page retention,
+     figure-region OCR).
   3. Machine-generated third-party license inventory taken from the *installed*
      environment metadata (the resolved ``uv.lock`` is the source of truth, not a
      hand-written list), so dependency updates can't silently drift.
@@ -44,13 +45,16 @@ Library.
 2. Changes made by this project
 ------------------------------------------------------------------------------
 This project adds a thin driver, a desktop GUI (Flet) and a headless CLI around
-NDLOCR-Lite. Specifically it adds page-range selection, non-ASCII path handling,
+NDLOCR-Lite. Specifically it adds page-range selection, full-page retention on
+partial OCR (the searchable PDF keeps the whole document, with a text layer only
+on the OCR'd pages), OCR of text inside figure regions, non-ASCII path handling,
 output renaming, and Windows packaging. The upstream engine code is NOT modified
 (it is consumed as a git submodule pinned to tag {UPSTREAM_REF}).
 
-The wrapper code authored by this project (src/, tests/, tools/) is licensed
-under the MIT License (see the LICENSE file). This does not affect the CC BY 4.0
-terms of the bundled NDLOCR-Lite engine and models below.
+All files authored by this project in this repository are licensed under the MIT
+License (see the LICENSE file), EXCEPT the bundled NDLOCR-Lite engine and models
+under external/ndlocr-lite/ and the third-party dependencies listed below. This
+does not affect those upstream / third-party terms.
 
 ------------------------------------------------------------------------------
 3. Third-party Python dependencies (generated from the installed environment)

@@ -21,8 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ----------------------------------------------------------------------------
-NOTE: This MIT license covers ONLY the wrapper code authored by this project
-(the contents of src/, tests/, and tools/). The bundled OCR engine and ONNX
-models from NDLOCR-Lite are licensed separately under CC BY 4.0 by the National
-Diet Library, and third-party dependencies under their own licenses. See the
-NOTICE file for full attributions and license texts.
+NOTE: This MIT license covers all files authored by this project in this
+repository (including, but not limited to, src/, tests/, tools/, the README,
+SPEC.md, the GitHub Actions workflows and pyproject.toml). It does NOT cover the
+bundled OCR engine and ONNX models from NDLOCR-Lite under external/ndlocr-lite/,
+which are licensed separately under CC BY 4.0 by the National Diet Library, nor
+any third-party files, which keep their own licenses. See the NOTICE file for
+full attributions and license texts.

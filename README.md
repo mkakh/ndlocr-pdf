@@ -109,7 +109,9 @@ Studio が必要）は本用途には過剰なため使いません。
 
 ## ライセンス
 
-- **本ラッパー部分**（`src/` / `tests/` / `tools/`）: **MIT License**（`LICENSE`）。
+- **本プロジェクトの自作ファイル**（`src/` / `tests/` / `tools/` のほか README・SPEC・
+  GitHub Actions・`pyproject.toml` 等）: **MIT License**（`LICENSE`）。
+  `external/ndlocr-lite/` と第三者由来ファイルは対象外。
 - **OCR エンジン・ONNX モデル**: NDLOCR-Lite に由来し **CC BY 4.0**（国立国会図書館）。
 - **依存ライブラリ**: それぞれの寛容ライセンス（Apache / MIT / BSD ほか）。
 
